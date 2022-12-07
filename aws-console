@@ -16,11 +16,10 @@ except IndexError:
 
 
 federation_url = 'https://signin.aws.amazon.com/federation'
-destination_url = f'https://console.aws.amazon.com/{service_name}'
-
 
 session = boto3.Session()
 session_credentials = session.get_credentials()
+destination_url = f'https://console.aws.amazon.com/{service_name}?region={session.region_name}'
 
 credentials = {
     'sessionId': session_credentials.access_key,
