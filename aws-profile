@@ -1,14 +1,52 @@
+#!/usr/bin/env bash
+
 function aws-profile() {
-  if [[ -z "${1}" ]]; then
-    profiles=$(grep '\[profile' ~/.aws/config | tr -d '[]' | awk '{print $2}')
-    for profile in $profiles; do
-      if [[ "${profile}" == "${AWS_PROFILE}" ]]; then
-        echo "${profile} *"
-      else
-        echo "${profile}"
-      fi
-    done
-  else
-    export AWS_PROFILE="${1}"
+  local cmd="$1"
+
+  local aws_config_file="${AWS_CONFIG_FILE:-$HOME/.aws/config}"
+
+  if ! [[ -f $aws_config_file ]]; then
+    echo "Error: AWS_CONFIG_FILE ($aws_config_file) does not exist, no profiles available." 1>&2
+    return 1
   fi
+
+  declare -a profiles=(default)
+  readarray -t explicit_profiles < <(grep '\[profile' "$aws_config_file" | tr -d '[]' | awk '{print $2}')
+  profiles+=("${explicit_profiles[@]}")
+
+  case $cmd in
+    "get"|"")
+
+      echo "${#profiles[@]} profiles"
+      for profile in "${profiles[@]}"; do
+        if [[ "${profile}" == "${AWS_PROFILE:-default}" ]]; then
+          echo "* ${profile}"
+          :
+        else
+          echo "  ${profile}"
+          :
+        fi
+      done
+    ;;
+    "set")
+
+      declare newprofile
+      if [[ -n "$2" ]]; then
+        newprofile="$2"
+      else
+        newprofile="$(printf "%s\n" "${profiles[@]}" | fzf --preview="aws configure list --profile {}")"
+      fi
+
+      if [[ $newprofile == "default" ]]; then
+        unset AWS_PROFILE
+      else
+        export AWS_PROFILE="$newprofile"
+      fi
+      ;;
+    *)
+      echo "Error: unknown command $cmd" 1>&2
+      echo "Usage: ${BASH_SOURCE[0]} [set|get]" 1>&2
+      return 1
+      ;;
+  esac
 }
