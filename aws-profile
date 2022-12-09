@@ -35,6 +35,10 @@ function aws-profile() {
         newprofile="$2"
       else
         newprofile="$(printf "%s\n" "${profiles[@]}" | fzf --preview="aws configure list --profile {}")"
+        if [[ $? -ne 0 ]]; then
+          # Treat fzf error as no profile selected
+          return 0
+        fi
       fi
 
       if [[ $newprofile == "default" ]]; then
