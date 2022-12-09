@@ -46,6 +46,7 @@ function aws-profile() {
       else
         export AWS_PROFILE="$newprofile"
       fi
+      echo "Profile set to '${newprofile}'"
       ;;
     *)
       echo "Error: unknown command $cmd" 1>&2
