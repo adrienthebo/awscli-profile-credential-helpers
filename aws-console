@@ -44,4 +44,5 @@ params = {
 
 request = requests.Request('GET', federation_url, params=params).prepare()
 
+print(f"Opening AWS service {service_name} in region {session.region_name}")
 webbrowser.open(request.url)
