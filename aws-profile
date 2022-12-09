@@ -2,6 +2,7 @@
 
 function aws-profile() {
   local cmd="$1"
+  shift
 
   local aws_config_file="${AWS_CONFIG_FILE:-$HOME/.aws/config}"
 
@@ -31,8 +32,9 @@ function aws-profile() {
     "set")
 
       declare newprofile
-      if [[ -n "$2" ]]; then
-        newprofile="$2"
+      if [[ -n "$1" ]] && ! [[ $1 =~ '--' ]]; then
+        shift
+        newprofile="$1"
       else
         newprofile="$(printf "%s\n" "${profiles[@]}" | fzf --preview="aws configure list --profile {}")"
         if [[ $? -ne 0 ]]; then
@@ -47,6 +49,14 @@ function aws-profile() {
         export AWS_PROFILE="$newprofile"
       fi
       echo "Profile set to '${newprofile}'"
+
+      if [[ $1 == '--login' ]]; then
+        if ! aws configure get aws_access_key_id 1>/dev/null; then
+          aws sso login
+        else
+          echo "AWS profile $AWS_PROFILE already logged in, skipping login"
+        fi
+      fi
       ;;
     *)
       echo "Error: unknown command $cmd" 1>&2
