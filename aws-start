@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+url="$(aws configure get sso_start_url)"
+if [[ -z $url ]]; then
+    echo "Error: sso_start_url not defined for current profile, cannot open browser" 1>&2
+    exit 1
+fi
+
+if [[ -n $BROWSER ]]; then
+    $BROWSER "$url"
+elif command -v open 1>/dev/null 2>/dev/null; then
+    open "$url"
+elif command -v xdg-open 1>/dev/null 2>/dev/null; then
+    xdg-open "$url"
+else
+    echo "Error: cannot locate a browser to open SSO start URL" 1>&2
+    exit 1
+fi
