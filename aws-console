@@ -3,6 +3,7 @@
 
 import json
 import sys
+import os
 import webbrowser
 
 import boto3
@@ -20,6 +21,13 @@ federation_url = 'https://signin.aws.amazon.com/federation'
 session = boto3.Session()
 session_credentials = session.get_credentials()
 region = session.region_name
+if len(region) == 0:
+    region = os.environ["AWS_REGION"]
+
+if len(region) == 0:
+    print(f"Error: region for current profile is unset, cannot navigate to {service_name}", file=sys.stderr)
+    sys.exit(1)
+
 destination_url = f'https://{region}.console.aws.amazon.com/{service_name}?region={region}'
 
 credentials = {
@@ -45,5 +53,5 @@ params = {
 
 request = requests.Request('GET', federation_url, params=params).prepare()
 
-print(f"Opening AWS service {service_name} in region {session.region_name}")
+print(f"Opening AWS service {service_name} in region {region} (url={destination_url}")
 webbrowser.open(request.url)
